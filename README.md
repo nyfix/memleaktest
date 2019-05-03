@@ -14,6 +14,17 @@ The tools provide the following:
 - You can filter leaks based on valgrind's "indirectly lost", "possibly lost" and "still reachable" categories.  This means that you will typically want to capture everything and filter it later.
  - The different categories generate the same leak ID's, and are combined for the purpose of counting occurences.
 
+# Installation
+Simply clone the repo and add the `scripts` directory to your `PATH`:
+
+```
+cd <dir>
+git clone https://github.com/nyfix/memleaktest.git
+export PATH=<dir>/memleaktest/scripts:${PATH} 
+```
+
+# Documentation
+Documentation can be found in the [wiki](https://github.com/nyfix/memleaktest/wiki).
 
 # Credits
 The initial scripts were created by Bill Mott, and subsequently modified and enhanced by Kwong Kit Wong, Tilak Singh and Bill Torpey.
