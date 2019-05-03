@@ -15,26 +15,16 @@
 #   limitations under the License.
 
 #
-# Format & filter valgrind leak reports
+# Format & filter valgrind memory error reports
 #
-# Usage: vlc.sh [-f] [-m] [-i] [-r] [-p] [-t] [-d] {files}
+# Usage: vmc.sh [-f] [-t] {files}
 #
 # -f Filter output to contain only relevant stack traces.  Default is to include
 # all stack frames.
 #
-# -m Only report multiple leaks (count > 1).  Default is to include single leaks as well.
-#
-# -i Include "indirectly lost" blocks.
-#
-# -r Include "still reachable" blocks.
-#
-# -p Include "possibly lost" blocks.
-#
 # -d Output debug messages.
 #
 # -v Verbose output.  (Report even if all leaks suppressed).
-#
-# NOTE: "definitely lost" blocks are always included.
 #
 # -t Process input files in sorted order based on timestamp.
 # Default is to assume input files are named in the form xxxxxxx-<pid>.* and to sort files
@@ -51,20 +41,12 @@ SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
 
 FILTER=0
-MULTI=0
-REACHABLE=0
-INDIRECT=0
-POSSIBLY=0
 TIMESORT=0
 DEBUG=0
 VERBOSE=0
-while getopts 'fmriptdv' flag; do
+while getopts 'ftdv' flag; do
   case "${flag}" in
     f) FILTER=1 ;;
-    m) MULTI=1 ;;
-    r) REACHABLE=1 ;;
-    i) INDIRECT=1 ;;
-    p) POSSIBLY=1 ;;
     t) TIMESORT=1 ;;
     d) DEBUG=1 ;;
     v) VERBOSE=1 ;;
@@ -95,7 +77,7 @@ FAILS=0
 # loop thru files specified on command line
 for filename in $FILES; do
    # run the awk script to format, filter, etc.
-   OUTPUT=$(gawk -f $SCRIPT_DIR/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} -v keepFile="${SCRIPT_DIR}/vlc.keep" -v discardFile="${SCRIPT_DIR}/vlc.supp" $filename)
+   OUTPUT=$(gawk -f $SCRIPT_DIR/vmc.awk  ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v timesort=${TIMESORT} -v keepFile="${SCRIPT_DIR}/vlc.keep" -v discardFile="${SCRIPT_DIR}/vmc.supp" $filename)
    RC=$?
    # set flags
    [[ ($RC == 1) ]] && ERRORS=1

@@ -23,6 +23,14 @@ git clone https://github.com/nyfix/memleaktest.git
 export PATH=<dir>/memleaktest/scripts:${PATH} 
 ```
 
+## Notes
+- Requires gnu awk (gawk) 4.1 or later
+- For Mac, need to install gnu awk -- e.g.:
+
+   ```
+   brew install gawk
+   ```
+
 # Documentation
 Documentation can be found in the [wiki](https://github.com/nyfix/memleaktest/wiki).
 
