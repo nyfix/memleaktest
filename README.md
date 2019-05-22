@@ -1,6 +1,8 @@
 # Memory & Leak Testing Tools
 
-These tools simplify and extend popular memory and leak testing tools such as [valgrind](valgrind.org) and [clang's Address Sanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer):.  The approach taken is to post-process the tools' output to provide additional capabilities.  This also allows reports to be suppressed after the fact, rather than having to be done at the time the test is run.
+These tools simplify and extend popular memory and leak testing tools such as [valgrind](valgrind.org) and [clang's Address Sanitizer](https://github.com/google/sanitizers/wiki/AddressSanitizer).  
+
+The approach taken is to post-process the tools' output to provide additional capabilities.  This also allows reports to be suppressed after the fact, rather than having to be done at the time the test is run.
 
 - You can run the scripts on multiple report files at one time, and redirect the summary output to a file.  We use this capabiRe: MALLOC_CHECK_lity to process all the individual valgrind files from a single test run in "one swell foop".
 - The scripts assign a unique ID to each leak or memory error, based on its stack trace.  This makes it possible to track leaks and errors across different processes, software versions and test runs.

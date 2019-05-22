@@ -36,40 +36,9 @@
 # for Mac, need to install gnu awk (gawk) -- following worked for me:
 #   brew install gawk
 
-# get current directory
 SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
+source ${SCRIPT_DIR}/common.sh
 export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
-
-FILTER=0
-TIMESORT=0
-DEBUG=0
-VERBOSE=0
-while getopts 'ftdv' flag; do
-  case "${flag}" in
-    f) FILTER=1 ;;
-    t) TIMESORT=1 ;;
-    d) DEBUG=1 ;;
-    v) VERBOSE=1 ;;
-  esac
-done
-shift $(($OPTIND - 1))
-
-if [[ ${OSTYPE} == *darwin* ]]; then
-  MD5SUM="md5"
-else
-  MD5SUM="md5sum"
-fi
-
-if [[ ${TIMESORT} == 1 ]]; then
-  FILES=$(ls -tr1 $*)
-else
-  FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
-fi
-
-#echo 'FILES=' $FILES 1>&2
-
-# uncomment to get lint output
-#LINT="--lint"
 
 RC=0
 ERRORS=0
