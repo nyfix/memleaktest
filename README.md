@@ -4,7 +4,7 @@ These tools simplify and extend popular memory and leak testing tools such as [v
 
 The approach taken is to post-process the tools' output to provide additional capabilities.  This also allows reports to be suppressed after the fact, rather than having to be done at the time the test is run.
 
-- You can run the scripts on multiple report files at one time, and redirect the summary output to a file.  We use this capabiRe: MALLOC_CHECK_lity to process all the individual valgrind files from a single test run in "one swell foop".
+- You can run the scripts on multiple report files at one time, and redirect the summary output to a file.  We use this capability to process all the individual valgrind files from a single test run in "one swell foop".
 - The scripts assign a unique ID to each leak or memory error, based on its stack trace.  This makes it possible to track leaks and errors across different processes, software versions and test runs.
  - The scripts massage the stack trace so that similar stacks will generate the same ID even if there are minor differences.  They also resolve differences between gcc and clang.
 - The scripts allow for filtering leaks and errors based on their unique ID.  This allows you to suppress reports more easily, and at a finer level of detail.  
@@ -12,7 +12,7 @@ The approach taken is to post-process the tools' output to provide additional ca
 - You can also filter specific leaks based on a count of occurences, so you can ignore leaks that occur a small number of times, e.g., at process startup.  If the leak count exceeds the limit, it will be reported.
 - You can ignore stack traces that don't match a set of regex's.  This lets you filter out leak and memory errors from "naughty" software (like the JVM) that otherwise would create a lot of useless reports, when there is no application code on the stack.
 - You can filter leaks based on valgrind's "indirectly lost", "possibly lost" and "still reachable" categories.  This means that you will typically want to capture everything and filter it later.
- - The different categories generate the same leak ID's, and are combined for the purpose of counting occurences.
+  - The different categories generate the same leak ID's, and are combined for the purpose of counting occurences.
 
 # Installation
 Simply clone the repo and add the `scripts` directory to your `PATH`:

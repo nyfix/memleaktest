@@ -22,9 +22,15 @@
 # -f Filter output to contain only relevant stack traces.  Default is to include
 # all stack frames.
 #
-# -d Output debug messages.
+# -g Output debug messages.
 #
 # -v Verbose output.  (Report even if all leaks suppressed).
+#
+# -k keepFile Location of a file containing regex's that are to be kept.  If not specified, default is to
+# look for 'vlc.keep' in current directory, then in script directory (but only if -f is specified).
+#
+# -d discardFile Location of a file containing regex's that are to be discarded.  If not specified, default is to
+# look for 'vlc.supp' in current directory, then in script directory (but only if -f is specified).
 #
 # -t Process input files in sorted order based on timestamp.
 # Default is to assume input files are named in the form xxxxxxx-<pid>.* and to sort files
@@ -40,42 +46,13 @@ SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 source ${SCRIPT_DIR}/common.sh
 export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
 
-RC=0
-ERRORS=0
-FAILS=0
-# loop thru files specified on command line
-for filename in $FILES; do
-   # run the awk script to format, filter, etc.
-   OUTPUT=$(gawk -f $SCRIPT_DIR/vmc.awk  ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v timesort=${TIMESORT} -v keepFile="${SCRIPT_DIR}/vlc.keep" -v discardFile="${SCRIPT_DIR}/vmc.supp" $filename)
-   RC=$?
-   # set flags
-   [[ ($RC == 1) ]] && ERRORS=1
-   if [[ ($RC == 2) ]]; then
-      echo "Script failed -- parsing error in $filename!" 1>&2
-      FAILS=1
-   fi
-   # print output
-   if [[ ($RC != 0) || (${VERBOSE} == 1) ]]; then
-      # get the process name
-      echo "==============================="
-      echo -n "File="$(basename $filename)
-      echo -n ", Program="
-      grep 'Command:' $filename|awk '{s = ""; for (i = 3; i <= NF; i++) s = s $i " "; printf "%s", s }'
-      echo ""
-      echo "$OUTPUT"
-      echo
-   fi
-   #echo
-done
-
-if [[ $FAILS == 1 ]]; then
-   echo "Script failed -- parsing error(s) reported!" 1>&2
-   exit 2
+if [[ ${FILTER} -eq 1 ]]; then
+   # if not set, try current dir, then script dir
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vlc.keep")
+   [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
+   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vmc.supp")
+   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCPARAM}"
 fi
 
-if [[ $ERRORS == 1 ]]; then
-   echo "Errors reported" 1>&2
-   exit 1
-fi
-
-exit 0
+CMD="gawk -f ${SCRIPT_DIR}/vmc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
+runCmd ${CMD}
