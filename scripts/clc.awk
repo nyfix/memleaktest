@@ -117,7 +117,7 @@ $0 ~ regex {
    if (inStack) {
       # apply filtering
       keep = 1
-      if ((filter == 1) && (keepEntries > 0)) {
+      if ((filter == 1) && (length(keepEntries) > 0)) {
          keep = 0;
          for (i in keepEntries) {
             if (stack ~ keepEntries[i]) {
