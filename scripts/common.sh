@@ -8,7 +8,7 @@ POSSIBLY=0
 TIMESORT=0
 DEBUG=0
 VERBOSE=0
-while getopts ':k:fmriptdv' flag; do
+while getopts ':k:fmriptd:vg' flag; do
   case "${flag}" in
     f) FILTER=1 ;;
     m) MULTI=1 ;;
@@ -24,6 +24,8 @@ while getopts ':k:fmriptdv' flag; do
 done
 shift $(($OPTIND - 1))
 
+#[[ ${DEBUG} == 1 ]] && set -x
+
 if [[ ${OSTYPE} == *darwin* ]]; then
   MD5SUM="md5"
 else
@@ -35,6 +37,18 @@ if [[ ${TIMESORT} == 1 ]]; then
 else
   FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
 fi
+
+
+export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
+
+if [[ ${FILTER} -eq 1 ]]; then
+   # if not set, try current dir, then script dir
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vlc.keep")
+   [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
+   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vlc.supp")
+   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
+fi
+
 
 #echo 'FILES=' $FILES 1>&2
 
@@ -60,8 +74,6 @@ function runCmd
    # loop thru files specified on command line
    for filename in $FILES; do
       # run the awk script to format, filter, etc.
-      #CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} -v discardFile=${SCRIPT_DIR}/vlc.supp $filename"
-      # OUTPUT=$(gawk -f $SCRIPT_DIR/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} -v discardFile="${SCRIPT_DIR}/vlc.supp" $filename)
       OUTPUT=$(${CMD} ${filename})
       RC=$?
       # set flags
@@ -76,8 +88,11 @@ function runCmd
          echo "==============================="
          echo -n "File="$(basename $filename)
          echo -n ", Program="
-         grep 'Command:' $filename|awk '{s = ""; for (i = 3; i <= NF; i++) s = s $i " "; printf "%s", s }'
-         echo ""
+         if [[ ${CMD} == *vlc.awk* ]] ; then
+            grep 'Command:' $filename|awk '{s = ""; for (i = 4; i <= NF; i++) s = s $i " "; printf "%s", s }'
+         else
+            echo "${filename}" | awk -F '.' '{ printf "%s", $2; }'
+         fi
          echo "$OUTPUT"
          echo
       fi

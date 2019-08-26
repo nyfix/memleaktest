@@ -122,10 +122,7 @@ $0 ~ regex {
       }
       if (keep == 1) {
          # get key for stack
-         if (timesort == 1)
-            key = ++count
-         else
-            key = md5(stack)
+         key = md5(stack)
          stackName[key] = name
          stackCount[key] += 1
          stackString[key] = stack

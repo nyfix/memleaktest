@@ -15,27 +15,22 @@
 #   limitations under the License.
 
 #
-# Format & filter valgrind leak reports
+# Format & filter clang (leak sanitizer) reports
 #
-# Usage: vlc.sh [-f] [-m] [-i] [-r] [-p] [-t] [-g] [-v] [-k keepFile] [-d discardFile] {files}
+# Usage: clc.sh [-f] [-m] [-i] [-t] {files}
 #
 # -f Filter output to contain only relevant stack traces.  Default is to include
 # all stack frames.
 #
 # -m Only report multiple leaks (count > 1).  Default is to include single leaks as well.
 #
-# -i Include "indirectly lost" blocks.
-#
-# -r Include "still reachable" blocks.
-#
-# -p Include "possibly lost" blocks.
-#
-# NOTE: "definitely lost" blocks are always included.
+# -i Include indirect leaks.
 #
 # -g Output debug messages.
 #
 # -v Verbose output.  (Report even if all leaks suppressed).
 #
+# NOTE: Direct leaks are always included.
 
 # -k keepFile Location of a file containing regex's that are to be kept.  If not specified, default is to
 # look for 'vlc.keep' in current directory, then in script directory (but only if -f is specified).
@@ -44,7 +39,7 @@
 # look for 'vlc.supp' in current directory, then in script directory (but only if -f is specified).
 #
 # -t Process input files in sorted order based on timestamp.
-# Default is to assume input files are named in the form xxxxxxx-<pid>.* and to sort files
+# Default is to assume input files are named in the form xxxxxxx.<pid> and to sort files
 # numerically by the value of <pid>, which is typically the order in which processes are started,
 # and should therefore facilitate comparing different runs.
 #
@@ -56,5 +51,6 @@
 SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 source ${SCRIPT_DIR}/common.sh
 
-CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
+#CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
+CMD="gawk -f $SCRIPT_DIR/clc.awk ${LINT}   -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v indirect=${INDIRECT}                                                   -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
 runCmd ${CMD}

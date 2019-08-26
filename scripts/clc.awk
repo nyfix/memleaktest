@@ -1,23 +1,9 @@
 #!/bin/awk
 
-#   Copyright 2019 Itiviti AB
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-
 # To debug this script:
 # export DIR=<<path to file>>
 # export AWKPATH=${DIR}:${AWKPATH}
-# gawk -D -f ${DIR}/vlc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<valgrind file>>
+# gawk -D -f ${DIR}/clc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<valgrind file>>
 
 @include "common.awk"
 
@@ -31,27 +17,26 @@ BEGIN {
    stack=""
 
    # set regex's that trigger an error
-   regex = "blocks are definitely lost"
-   if (indirect == 1)  { regex = regex"|blocks are indirectly lost"}
-   if (reachable == 1) { regex = regex"|blocks are still reachable"}
-   if (possibly == 1)  { regex = regex"|blocks are possibly lost"}
-   print ", select=["regex"]"
+  regex = "Direct leak of"
+  if (indirect == 1)  { regex = regex"|Indirect leak of"}
 
-   if (filter == 1) {
+  print ", select=["regex"]"
+
+  if (filter == 1) {
       # get list of regexes to keep -- must not be empty
       if (length(keepFile) < 0) {
          print "no keepFile specified!"
          fatal = 1
          exit 2
-       }
-       i = 0
-       while ((getline < keepFile) > 0) {
-          if ((length($0) > 0) && ($0 !~ "^#")) {
-             keepEntries[i++] = $0
-             printDebug("keeping " $0)
-          }
-       }
-       close(keepFile)
+      }
+      i = 0
+      while ((getline < keepFile) > 0) {
+         if ((length($0) > 0) && ($0 !~ "^#")) {
+            keepEntries[i++] = $0
+            printDebug("keeping " $0)
+         }
+      }
+      close(keepFile)
 
       # get list of regexes to discard (may be empty)
       if (length(discardFile) > 0) {
@@ -99,16 +84,10 @@ $0 ~ regex {
   printTokens()
 
   for (i=1; i<=NF; i++) {
-    if ($i == "blocks") {
-      blocks = stripCommas($(i-1))
-      if ($(i-4) == "indirect)") {
-        # format: x,xxx (x,xxx direct, x,xxx indirect)
-        bytes = stripCommas($(i-8))
-      }
-      else {
-        bytes = stripCommas($(i-4))
-      }
-    }
+    if ($i == "byte(s)")
+      bytes = $(i-1)
+    if ($i == "object(s)")
+      blocks = $(i-1)
   }
   if (blocks == 0) {
     print "fatal error - cant get # blocks"
@@ -123,7 +102,7 @@ $0 ~ regex {
 
 
 # end of a possibly interesting stack trace
-/^{/  || /==.*== $/ {
+/^$/  {
    if (inStack) {
       # apply filtering
       keep = 1
@@ -226,3 +205,4 @@ END {
 
   exit err
 }
+
