@@ -39,19 +39,16 @@ BEGIN {
 
    if (filter == 1) {
       # get list of regexes to keep -- must not be empty
-      if (length(keepFile) < 0) {
-         print "no keepFile specified!"
-         fatal = 1
-         exit 2
-       }
-       i = 0
-       while ((getline < keepFile) > 0) {
-          if ((length($0) > 0) && ($0 !~ "^#")) {
-             keepEntries[i++] = $0
-             printDebug("keeping " $0)
-          }
-       }
-       close(keepFile)
+      if (length(keepFile) > 0) {
+        i = 0
+        while ((getline < keepFile) > 0) {
+           if ((length($0) > 0) && ($0 !~ "^#")) {
+              keepEntries[i++] = $0
+              printDebug("keeping " $0)
+           }
+        }
+        close(keepFile)
+      }
 
       # get list of regexes to discard (may be empty)
       if (length(discardFile) > 0) {
@@ -127,7 +124,7 @@ $0 ~ regex {
    if (inStack) {
       # apply filtering
       keep = 1
-      if (filter == 1) {
+      if ((filter == 1) && (keepEntries > 0)) {
          keep = 0;
          for (i in keepEntries) {
             if (stack ~ keepEntries[i]) {

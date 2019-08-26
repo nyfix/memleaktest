@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# try to locate file in current dir, then script dir
+function findFile
+{
+   FINDFILE=$(find . -name "$1")
+   [[ -z ${FINDFILE} ]] && FINDFILE=$(find ${SCRIPT_DIR} -name "$1")
+   echo "${FINDFILE}"
+}
+
 FILTER=0
 MULTI=0
 REACHABLE=0
@@ -55,13 +63,6 @@ fi
 # uncomment to get lint output
 #LINT="--lint"
 
-# try to locate file in current dir, then script dir
-function findFile
-{
-   FINDFILE=$(find . -name "$1")
-   [[ -z ${FINDFILE} ]] && FINDFILE=$(find ${SCRIPT_DIR} -name "$1")
-   echo "${FINDFILE}"
-}
 
 # run command on specified files
 function runCmd
