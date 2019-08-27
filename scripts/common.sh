@@ -39,7 +39,13 @@ fi
 if [[ ${TIMESORT} == 1 ]]; then
   FILES=$(ls -tr1 $*)
 else
-  FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
+  if [[ (${CMD} == *vlc.awk*) || (${CMD} == *vmc.awk*) ]] ; then
+    # assumes filename of the form valgrind-pid.ext
+    FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
+  else
+    # assumes filename of the form lsan.exename.pid.ext
+    FILES=$(ls -1 $* | sort -n --field-separator=. --key=3,3)
+  fi
 fi
 
 export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
