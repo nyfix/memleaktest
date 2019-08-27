@@ -1,13 +1,6 @@
 #!/bin/bash
 
-# try to locate file in current dir, then script dir
-function findFile
-{
-   FINDFILE=$(find . -name "$1")
-   [[ -z ${FINDFILE} ]] && FINDFILE=$(find ${SCRIPT_DIR} -name "$1")
-   echo "${FINDFILE}"
-}
-
+# process cmd line params
 FILTER=0
 MULTI=0
 REACHABLE=0
@@ -28,40 +21,29 @@ while getopts ':k:fmriptd:vg' flag; do
     v) VERBOSE=1 ;;
     k) KEEPFILE=${OPTARG}; FILTER=1 ;;
     d) DISCFILE=${OPTARG}; FILTER=1 ;;
+    l) LINT="--lint" ;;
   esac
 done
 shift $(($OPTIND - 1))
 
 #[[ ${DEBUG} == 1 ]] && set -x
 
+# running on mac/linux?
 if [[ ${OSTYPE} == *darwin* ]]; then
   MD5SUM="md5"
 else
   MD5SUM="md5sum"
 fi
 
+# sort files?
 if [[ ${TIMESORT} == 1 ]]; then
   FILES=$(ls -tr1 $*)
 else
   FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
 fi
 
-
 export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
 
-if [[ ${FILTER} -eq 1 ]]; then
-   # if not set, try current dir, then script dir
-   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vlc.keep")
-   [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
-   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vlc.supp")
-   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
-fi
-
-
-#echo 'FILES=' $FILES 1>&2
-
-# uncomment to get lint output
-#LINT="--lint"
 
 
 # run command on specified files
@@ -89,8 +71,9 @@ function runCmd
          echo "==============================="
          echo -n "File="$(basename $filename)
          echo -n ", Program="
-         if [[ ${CMD} == *vlc.awk* ]] ; then
+         if [[ (${CMD} == *vlc.awk*) || (${CMD} == *vmc.awk*) ]] ; then
             grep 'Command:' $filename|awk '{s = ""; for (i = 4; i <= NF; i++) s = s $i " "; printf "%s", s }'
+            echo
          else
             echo "${filename}" | awk -F '.' '{ printf "%s", $2; }'
          fi
@@ -111,5 +94,13 @@ function runCmd
    fi
 
    return 0
+}
+
+# try to locate file in current dir, then script dir
+function findFile
+{
+   FINDFILE=$(find . -name "$1")
+   [[ -z ${FINDFILE} ]] && FINDFILE=$(find ${SCRIPT_DIR} -name "$1")
+   echo "${FINDFILE}"
 }
 

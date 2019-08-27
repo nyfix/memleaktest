@@ -107,7 +107,7 @@ $0 ~ regex {
 
 # end of a possibly interesting stack trace
 # TODO: find a better way to match on "is not stack'd"
-/HEAP SUMMARY:/ || /^{/ || /Uninitialised value was created by a/ || /is not stack/ || /bytes inside a block/  || /Address .* is on thread / || /==.*== $/ {
+/ERROR SUMMARY:/ || /LEAK SUMMARY:/ || /HEAP SUMMARY:/ || /^{/ || /Uninitialised value was created by a/ || /is not stack/ || /bytes inside a block/  || /Address .* is on thread / || /==.*== $/ {
    if (inStack) {
      # apply filtering
      keep = 1
@@ -131,6 +131,12 @@ $0 ~ regex {
      }
 
    inStack=0
+   }
+
+   # dont double-count errors, terminate after "real-time" portion of report
+   if (($0 ~ /ERROR SUMMARY:/) || ($0 ~ /LEAK SUMMARY:/) || ($0 ~ /HEAP SUMMARY:/) ) {
+      # goto END block
+      exit
    }
 }
 

@@ -44,14 +44,15 @@
 
 SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 source ${SCRIPT_DIR}/common.sh
-export AWKPATH=${SCRIPT_DIR}:${AWKPATH}
 
 if [[ ${FILTER} -eq 1 ]]; then
    # if not set, try current dir, then script dir
-   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vlc.keep")
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=${VMC_KEEP}
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vmc.keep")
    [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
-   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vmc.supp")
-   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCPARAM}"
+   [[ -z ${DISCFILE} ]] && DISCFILE=${VMC_DISC}
+   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vmc.disc")
+   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
 fi
 
 CMD="gawk -f ${SCRIPT_DIR}/vmc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"

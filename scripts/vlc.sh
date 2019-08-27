@@ -55,6 +55,15 @@
 
 SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 source ${SCRIPT_DIR}/common.sh
+if [[ ${FILTER} -eq 1 ]]; then
+   # if not set, try current dir, then script dir
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=${VLC_KEEP}
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "vlc.keep")
+   [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
+   [[ -z ${DISCFILE} ]] && DISCFILE=${VLC_DISC}
+   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "vlc.disc")
+   [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
+fi
 
 CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
 runCmd ${CMD}
