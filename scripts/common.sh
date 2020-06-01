@@ -79,10 +79,11 @@ function runCmd
          echo -n ", Program="
          if [[ (${CMD} == *vlc.awk*) || (${CMD} == *vmc.awk*) ]] ; then
             grep 'Command:' $filename|awk '{s = ""; for (i = 4; i <= NF; i++) s = s $i " "; printf "%s", s }'
-            echo
+            #echo
          else
             echo "${filename}" | awk -F '.' '{ printf "%s", $2; }'
          fi
+         echo ""
          echo "$OUTPUT"
          echo
       fi
