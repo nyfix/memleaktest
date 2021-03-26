@@ -17,7 +17,7 @@
 # To debug this script:
 # export DIR=<<path to file>>
 # export AWKPATH=${DIR}:${AWKPATH}
-# gawk -D -f ${DIR}/clc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<valgrind file>>
+# gawk -D -f ${DIR}/cmc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<asan file>>
 
 @include "common.awk"
 
@@ -28,8 +28,10 @@ BEGIN {
    stack=""
    error=""
 
+   print ""
+
    # set regex's that trigger an error
-  regex = "ERROR:"
+  regex = "ERROR: AddressSanitizer"
   if (filter == 1) {
       # get list of regexes to keep -- must not be empty
       if (length(keepFile) > 0) {
@@ -87,12 +89,15 @@ $0 ~ regex {
   error=$3
   printDebug("error=" error)
 
-  next
+  #next
 }
 
 
 # end of a possibly interesting stack trace
 /^$/  {
+
+   printDebug("stack=" stack)
+
    if (inStack) {
       # apply filtering
       keep = 1
@@ -126,6 +131,8 @@ $0 ~ regex {
    if (inStack) {
       # append to stack
       stack = appendStackFrame(stack, grabStackFrame())
+
+      printDebug("frame=" grabStackFrame())
    }
 }
 

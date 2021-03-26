@@ -81,9 +81,9 @@ function runCmd
             grep 'Command:' $filename|awk '{s = ""; for (i = 4; i <= NF; i++) s = s $i " "; printf "%s", s }'
             #echo
          else
-            echo "${filename}" | awk -F '.' '{ printf "%s", $2; }'
+            echo -n "${filename}" | awk -F '.' '{ printf "%s", $2; }'
          fi
-         echo ""
+         #echo ""
          echo "$OUTPUT"
          echo
       fi

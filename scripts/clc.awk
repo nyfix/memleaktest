@@ -34,7 +34,7 @@ BEGIN {
   regex = "Direct leak of"
   if (indirect == 1)  { regex = regex"|Indirect leak of"}
 
-  print ", select=["regex"]"
+  print ", select=["regex"]\n"
 
   if (filter == 1) {
       # get list of regexes to keep -- must not be empty
