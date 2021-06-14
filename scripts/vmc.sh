@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#   Copyright 2019 Itiviti AB
+#   Copyright 2021 Itiviti AB
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -27,10 +27,10 @@
 # -v Verbose output.  (Report even if all leaks suppressed).
 #
 # -k keepFile Location of a file containing regex's that are to be kept.  If not specified, default is to
-# look for 'vlc.keep' in current directory, then in script directory (but only if -f is specified).
+# look for 'vmc.keep' in current directory, then in script directory (but only if -f is specified).
 #
 # -d discardFile Location of a file containing regex's that are to be discarded.  If not specified, default is to
-# look for 'vlc.supp' in current directory, then in script directory (but only if -f is specified).
+# look for 'vmc.disc' in current directory, then in script directory (but only if -f is specified).
 #
 # -t Process input files in sorted order based on timestamp.
 # Default is to assume input files are named in the form xxxxxxx-<pid>.* and to sort files

@@ -15,28 +15,22 @@
 #   limitations under the License.
 
 #
-# Format & filter clang (leak sanitizer) reports
+# Format & filter clang (undefined behavior sanitizer) reports
 #
-# Usage: clc.sh [-f] [-m] [-i] [-t] {files}
+# Usage: cuc.sh [-f] [-t] {files}
 #
 # -f Filter output to contain only relevant stack traces.  Default is to include
 # all stack frames.
-#
-# -m Only report multiple leaks (count > 1).  Default is to include single leaks as well.
-#
-# -i Include indirect leaks.
 #
 # -g Output debug messages.
 #
 # -v Verbose output.  (Report even if all leaks suppressed).
 #
-# NOTE: Direct leaks are always included.
-
 # -k keepFile Location of a file containing regex's that are to be kept.  If not specified, default is to
-# look for 'clc.keep' in current directory, then in script directory (but only if -f is specified).
+# look for 'cuc.keep' in current directory, then in script directory (but only if -f is specified).
 #
 # -d discardFile Location of a file containing regex's that are to be discarded.  If not specified, default is to
-# look for 'clc.supp' in current directory, then in script directory (but only if -f is specified).
+# look for 'cuc.disc' in current directory, then in script directory (but only if -f is specified).
 #
 # -t Process input files in sorted order based on timestamp.
 # Default is to assume input files are named in the form xxxxxxx.<pid> and to sort files
@@ -52,14 +46,13 @@ SCRIPT_DIR=$(cd `dirname $BASH_SOURCE` && pwd)
 source ${SCRIPT_DIR}/common.sh
 if [[ ${FILTER} -eq 1 ]]; then
    # if not set, try current dir, then script dir
-   [[ -z ${KEEPFILE} ]] && KEEPFILE=${CLC_KEEP}
-   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "clc.keep")
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=${CUC_KEEP}
+   [[ -z ${KEEPFILE} ]] && KEEPFILE=$(findFile "cuc.keep")
    [[ -n ${KEEPFILE} ]] && KEEPPARAM="-v keepFile=${KEEPFILE}"
-   [[ -z ${DISCFILE} ]] && DISCFILE=${VLC_DISC}
-   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "clc.disc")
+   [[ -z ${DISCFILE} ]] && DISCFILE=${CUC_DISC}
+   [[ -z ${DISCFILE} ]] && DISCFILE=$(findFile "cuc.disc")
    [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
 fi
 
-#CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
-CMD="gawk -f $SCRIPT_DIR/clc.awk ${LINT}   -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v indirect=${INDIRECT}                                                   -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
+CMD="gawk -f ${SCRIPT_DIR}/cuc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v indirect=${INDIRECT}                                                   -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
 runCmd ${CMD}

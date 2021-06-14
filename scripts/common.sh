@@ -26,7 +26,7 @@ while getopts ':k:fmriptd:vg' flag; do
 done
 shift $(($OPTIND - 1))
 
-#[[ ${DEBUG} == 1 ]] && set -x
+[[ ${DEBUG} == 1 ]] && set -x
 
 # running on mac/linux?
 if [[ ${OSTYPE} == *darwin* ]]; then

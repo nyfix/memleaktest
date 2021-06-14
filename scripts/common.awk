@@ -113,6 +113,9 @@ function md5(s, frame, temp, first, i, n)
      # transform "func@@GLIBC_version" => "func"
      sub(/@@\S+/, "", temp)
 
+     # ignore arbitrary differences
+     sub(/__cxx_global_var_init.*/, "__cxx_global_var_init", temp)
+
      # strip off the "( in path.so)" bit at the end
      if (sub(/ \(in \S+\)$/, "", temp) == 0) {
         # strip off the "(file:line)", " file:line" or " file+address" bit at the end
