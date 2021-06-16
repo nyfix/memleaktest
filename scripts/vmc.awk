@@ -1,6 +1,6 @@
 #!/bin/awk
 
-#   Copyright 2019 Itiviti AB
+#   Copyright 2021 Itiviti AB
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -14,6 +14,11 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
+# To debug this script:
+# export DIR=<<path to file>>
+# export AWKPATH=${DIR}:${AWKPATH}
+# gawk -D -f ${DIR}/vmc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vmc.keep" -v discardFile="${DIR}/vmc.disc" <<valgrind file>>
+
 @include "common.awk"
 
 BEGIN {
@@ -23,6 +28,8 @@ BEGIN {
    err=0                     # flag set if any errors found
    fatal=0                   # flag set on parse error
    stack=""
+
+   print ""
 
    # set regex's that trigger an error
    # NOTE: these were determined by examining valgrind source (mc_errors.c)
@@ -42,19 +49,16 @@ BEGIN {
 
    if (filter == 1) {
       # get list of regexes to keep -- must not be empty
-      if (length(keepFile) < 0) {
-         print "no keepFile specified!"
-         fatal = 1
-         exit 2
-       }
-       i = 0
-       while ((getline < keepFile) > 0) {
-          if ((length($0) > 0) && ($0 !~ "^#")) {
-             keepEntries[i++] = $0
-             printDebug("keeping " $0)
-          }
-       }
-       close(keepFile)
+      if (length(keepFile) > 0) {
+        i = 0
+        while ((getline < keepFile) > 0) {
+           if ((length($0) > 0) && ($0 !~ "^#")) {
+              keepEntries[i++] = $0
+              printDebug("keeping " $0)
+           }
+        }
+        close(keepFile)
+      }
 
       # get list of regexes to discard (may be empty)
       printDebug("discardFile=" discardFile)
@@ -108,10 +112,12 @@ $0 ~ regex {
 # end of a possibly interesting stack trace
 # TODO: find a better way to match on "is not stack'd"
 /ERROR SUMMARY:/ || /LEAK SUMMARY:/ || /HEAP SUMMARY:/ || /^{/ || /Uninitialised value was created by a/ || /is not stack/ || /bytes inside a block/  || /Address .* is on thread / || /==.*== $/ {
+
+   printDebug("stack=" stack)
    if (inStack) {
      # apply filtering
      keep = 1
-     if (filter == 1) {
+      if ((filter == 1) && (length(keepEntries) > 0)) {
         keep = 0;
         for (i in keepEntries) {
             if (stack ~ keepEntries[i]) {
@@ -146,6 +152,8 @@ $0 ~ regex {
    if (inStack) {
       # append to stack
       stack = appendStackFrame(stack, grabStackFrame())
+
+      printDebug("frame=" grabStackFrame())
    }
 }
 

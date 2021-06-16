@@ -17,13 +17,13 @@
 # To debug this script:
 # export DIR=<<path to file>>
 # export AWKPATH=${DIR}:${AWKPATH}
-# gawk -D -f ${DIR}/cmc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<asan file>>
+# gawk -D -f ${DIR}/cuc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<asan file>>
 
 @include "common.awk"
 
 BEGIN {
    inStack=0                 # flag to mark begin and end of stack trace
-   err=0                     # flag set if any leaks found
+   err=0                     # flag set if any errors found
    fatal=0                   # flag set on parse error
    stack=""
    error=""
@@ -46,6 +46,7 @@ BEGIN {
       }
 
       # get list of regexes to discard (may be empty)
+      printDebug("discardFile=" discardFile)
       if (length(discardFile) > 0) {
          printDebug("loading suppressions from " discardFile)
          i = 0
@@ -93,6 +94,7 @@ $0 ~ /^\S/ {
 
   error=""
   for(i=4;i<=NF;i++){ error = error $(i) " " }
+  error = substr(error, 1, length(error)-1 )
 
   next
 }
@@ -118,12 +120,10 @@ $0 ~ /^\S/ {
       if (keep == 1) {
          # get key for stack
          key = md5(stack)
-         stackBlocks[key] += blocks
-         stackBytes[key] += bytes
+         stackError[key] = error
          stackCount[key] += 1
          stackString[key] = stack
-         stackError[key] = error
-         printDebug("md5sum=" key ", stack=" gensub(/\n/, "|", "G", stack))
+         printDebug("md5sum=" key ", count=" stackCount[key] ", stack=" gensub(/\n/, "|", "G", stack))
          printDebug("")
       }
 
@@ -153,39 +153,29 @@ END {
      PROCINFO["sorted_in"]="@ind_num_asc"                        # sort output by index
   else
      PROCINFO["sorted_in"]="@ind_str_asc"                        # sort output by value of md5 (facilitates comparison of different files)
-
-  for (key in stackBlocks) {
+  for (key in stackCount) {
       # do we want to filter this out?
       keep = 1
       PROCINFO["sorted_in"]="@ind_num_asc"                     # traverse suppressions by index
-
-      # check against discard strings
       for (i in discardString) {
-         printDebug("checking " key " with blocks=" stackBlocks[key] " against " discardString[i] " with limit = " discardLimit[i])
-         if ((stackString[key] ~ discardString[i]) && ((discardLimit[i] <=0) || (stackBlocks[key] <= discardLimit[i]))) {
+         printDebug("checking " key " with count=" stackCount[key] " against " discardString[i])
+         if (stackString[key] ~ discardString[i]) {
             keep = 0
-            printDebug("discarding stack for " key " with blocks=" stackBlocks[key] " <= " discardLimit[i])
-            printDebug("")
+            printDebug("discarding stack for " key " with count=" stackCount[key])
             discardCount[i] += stackCount[key]
-            discardBlocks[i] += stackBlocks[key]
-            discardBytes[i] += stackBytes[key]
             break
          }
-         else if ((key ~ discardString[i]) && ((discardLimit[i] <=0) || (stackBlocks[key] <= discardLimit[i]))) {
+         if (key ~ discardString[i]) {
             keep = 0
-            printDebug("discarding " key " with blocks=" stackBlocks[key] " <= " discardLimit[i])
-            printDebug("")
+            printDebug("discarding " key " with count=" stackCount[key])
             discardCount[i] += stackCount[key]
-            discardBlocks[i] += stackBlocks[key]
-            discardBytes[i] += stackBytes[key]
             break
          }
       }
 
       if (keep == 1) {
          err=1
-         #print "======================================================="
-         print "ID=" key " Error=" stackError[key]
+         print "ID=" key " Count=" stackCount[key] " Error=\"" stackError[key] "\""
          DisplayStack(stackString[key])
       }
   }
@@ -194,7 +184,7 @@ END {
   PROCINFO["sorted_in"]="@ind_num_asc"                     # traverse suppressions by index
   for (i in discardString) {
      if (discardCount[i] > 0) {
-        print "Suppressed=" discardString[i] " Blocks=" discardBlocks[i] " Count=" discardCount[i]  " Bytes=" discardBytes[i]
+        print "Suppressed=" discardString[i] " count=" discardCount[i]
      }
   }
 

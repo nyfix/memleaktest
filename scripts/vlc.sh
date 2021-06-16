@@ -65,5 +65,5 @@ if [[ ${FILTER} -eq 1 ]]; then
    [[ -n ${DISCFILE} ]] && DISCPARAM="-v discardFile=${DISCFILE}"
 fi
 
-CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} ${KEEPPARAM} ${DISCPARAM}"
+CMD="gawk -f ${SCRIPT_DIR}/vlc.awk ${LINT} -v debug=${DEBUG} -v md5sum=${MD5SUM} -v filter=${FILTER} -v multi=${MULTI} -v reachable=${REACHABLE} -v indirect=${INDIRECT} -v possibly=${POSSIBLY} -v timesort=${TIMESORT} -v verbose=${VERBOSE} ${KEEPPARAM} ${DISCPARAM}"
 runCmd ${CMD}

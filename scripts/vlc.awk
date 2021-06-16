@@ -1,3 +1,4 @@
+
 #!/bin/awk
 
 #   Copyright 2019 Itiviti AB
@@ -17,7 +18,7 @@
 # To debug this script:
 # export DIR=<<path to file>>
 # export AWKPATH=${DIR}:${AWKPATH}
-# gawk -D -f ${DIR}/vlc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.supp" <<valgrind file>>
+# gawk -D -f ${DIR}/vlc.awk -v md5sum={md5|md5sum} -v filter=1 -v keepFile="${DIR}/vlc.keep" -v discardFile="${DIR}/vlc.disc" <<valgrind file>>
 
 @include "common.awk"
 
@@ -30,12 +31,15 @@ BEGIN {
    fatal=0                   # flag set on parse error
    stack=""
 
+   print ""
+
    # set regex's that trigger an error
    regex = "blocks are definitely lost"
    if (indirect == 1)  { regex = regex"|blocks are indirectly lost"}
    if (reachable == 1) { regex = regex"|blocks are still reachable"}
    if (possibly == 1)  { regex = regex"|blocks are possibly lost"}
-   print ", select=["regex"]"
+
+   print "Selecting reports with count > " multi " which match [" regex "]"
 
    if (filter == 1) {
       # get list of regexes to keep -- must not be empty
@@ -51,6 +55,7 @@ BEGIN {
       }
 
       # get list of regexes to discard (may be empty)
+      printDebug("discardFile=" discardFile)
       if (length(discardFile) > 0) {
          printDebug("loading suppressions from " discardFile)
          i = 0
@@ -80,7 +85,7 @@ BEGIN {
       }
    }
 
-   #print ""
+   print ""
 }
 
 
@@ -121,6 +126,8 @@ $0 ~ regex {
 
 # end of a possibly interesting stack trace
 /^{/  || /==.*== $/ {
+
+   printDebug("stack=" stack)
    if (inStack) {
       # apply filtering
       keep = 1
@@ -154,6 +161,8 @@ $0 ~ regex {
    if (inStack) {
       # append to stack
       stack = appendStackFrame(stack, grabStackFrame())
+
+      printDebug("frame=" grabStackFrame())
    }
 }
 
