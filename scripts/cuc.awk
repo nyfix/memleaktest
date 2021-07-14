@@ -85,6 +85,8 @@ BEGIN {
 
 /pointer points here/ { getline ; getline }
 
+/defined here/ { next }
+
 # beginning of a possibly interesting stack trace
 $0 ~ /^\S/ {
   inStack=1;
