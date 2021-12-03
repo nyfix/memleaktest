@@ -128,6 +128,7 @@ $0 ~ regex {
 /^{/  || /==.*== $/ {
 
    printDebug("stack=" stack)
+   printDebug("inStack=" inStack)
    if (inStack) {
       # apply filtering
       keep = 1
@@ -140,6 +141,7 @@ $0 ~ regex {
             }
          }
       }
+      printDebug("keep=" keep)
       if (keep == 1) {
          # get key for stack
          key = md5(stack)
