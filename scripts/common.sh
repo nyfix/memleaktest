@@ -37,14 +37,14 @@ fi
 
 # sort files?
 if [[ ${TIMESORT} == 1 ]]; then
-  FILES=$(ls -tr1 $*)
+  FILES=$(ls -tr1 $* 2>/dev/null)
 else
   if [[ (${CMD} == *vlc.awk*) || (${CMD} == *vmc.awk*) ]] ; then
     # assumes filename of the form valgrind-pid.ext
-    FILES=$(ls -1 $* | sort -n --field-separator=- --key=2,2)
+    FILES=$(ls -1 $* 2>/dev/null | sort -n --field-separator=- --key=2,2)
   else
     # assumes filename of the form lsan.exename.pid.ext
-    FILES=$(ls -1 $* | sort -n --field-separator=. --key=3,3)
+    FILES=$(ls -1 $* 2>/dev/null | sort -n --field-separator=. --key=3,3)
   fi
 fi
 
@@ -96,7 +96,7 @@ function runCmd
    fi
 
    if [[ $ERRORS == 1 ]]; then
-      echo "Errors reported" 1>&2
+      [[ $VERBOSE == 1 ]] && echo "Errors reported" 1>&2
       return 1
    fi
 
