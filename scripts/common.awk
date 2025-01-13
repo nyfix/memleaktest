@@ -34,18 +34,26 @@ function grabStackFrame( s, firstCol, i)
   if ($0 == "")
      return ""
 
-  # use only function stack and ignore address and other columns
-  firstCol = 4
-  # some valgrind output files have a timestamp in first column, which shifts
-  # address over one - check & omit if so
-  if ($4 ~ "0x")
-    firstCol = 5
-  # with clang, word 3 is either "in" followed by function name, or "(<unknown module>)"
-  if ($3 == "(<unknown")
-    firstCol = 3
-
-  # store both function name and file/line etc.
-  s = $firstCol; for (i = firstCol+1; i <= NF; i++) s = s" "$i
+  if (NF >= 3 ) {
+    # use only function stack and ignore address and other columns
+    firstCol = 4
+    # some valgrind output files have a timestamp in first column, which shifts
+    # address over one - check & omit if so
+    if ($4 ~ "0x")
+      firstCol = 5
+    # with clang, word 3 is either "in" followed by function name, or "(<unknown module>)"
+    if ($3 == "(<unknown")
+      firstCol = 3
+    # store both function name and file/line etc.
+    s = $firstCol; for (i = firstCol+1; i <= NF; i++) s = s" "$i
+  }
+  else {
+    # in some cases, the executable is so messed up that clang/UBSAN is unable to determine the source of an instruction
+    # this is typically accompanied by the message "Failed to use and restart external symbolizer!"
+    # in this case we just capture the whole stack frame (and set a flag to force it to be kept)
+    noSource = 1
+    s = $0
+  }
 
   return s
 }
