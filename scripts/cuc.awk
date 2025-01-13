@@ -27,6 +27,7 @@ BEGIN {
    fatal=0                   # flag set on parse error
    stack=""
    error=""
+   noSource=0
 
    print ""
 
@@ -83,20 +84,36 @@ BEGIN {
 # just skip these
 /SUMMARY/  { next }
 
-/pointer points here/ { getline ; getline }
+/pointer points here/ { getline ; getline ; getline}
 
 /defined here/ { next }
+
+/^==/ {next}
+
+/invalid vptr/ { next }
+
+/memory cannot be printed/ { next }
+
+/misaligned address/ { next }
+
+#/create a socket pair/ { next }
+
+#/Failed to use and restart external symbolizer/ { next }
+
 
 # beginning of a possibly interesting stack trace
 $0 ~ /^\S/ {
   inStack=1;
   stack=""
+  noSource=0
 
   printTokens()
 
   error=""
   for(i=4;i<=NF;i++){ error = error $(i) " " }
   error = substr(error, 1, length(error)-1 )
+
+  printDebug("error=" error)
 
   next
 }
@@ -110,7 +127,10 @@ $0 ~ /^\S/ {
    if (inStack) {
       # apply filtering
       keep = 1
-      if ((filter == 1) && (length(keepEntries) > 0)) {
+      if (noSource == 1) {
+         keep = 1;
+      }
+      else if ( (filter == 1) && (length(keepEntries) > 0) ) {
          keep = 0;
          for (i in keepEntries) {
             if (stack ~ keepEntries[i]) {
