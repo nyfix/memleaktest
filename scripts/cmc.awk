@@ -78,6 +78,7 @@ BEGIN {
   print ""
 }
 
+$0 ~ "^READ of" { next }
 
 # beginning of a possibly interesting stack trace
 $0 ~ regex {
@@ -87,10 +88,19 @@ $0 ~ regex {
   printTokens()
 
   error=$3
+  if (error == "attempting") {
+     error=$4
+  }
   printDebug("error=" error)
 
-  #next
+  next
+  if (error == "heap-buffer-overflow") {
+     next
+  }
 }
+
+# asan trace messages can occur in the middle of a stack trace -- skip them
+$0 ~ "==.*==.*==.*" { next }
 
 
 # end of a possibly interesting stack trace
